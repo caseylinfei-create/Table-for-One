@@ -77,18 +77,6 @@ export function Profile({ toast }: { toast: (t: string) => void }) {
         </div>
       </section>
 
-      <section className="setup-card mt-3">
-        <h2 className="setup-h">Dish pictures</h2>
-        <p className="-mt-1 mb-3 text-[13px] text-muted">Preview both styles. Only three dishes have photos so far.</p>
-        <Segmented<'game' | 'photo'>
-          id="p-dishstyle"
-          label="Dish pictures"
-          value={data.dishStyle}
-          onChange={(v) => dispatch({ type: 'setDishStyle', dishStyle: v })}
-          options={[{ value: 'game', label: 'Illustrated' }, { value: 'photo', label: 'Photos' }]}
-        />
-      </section>
-
       <section className="mt-6">
         {confirmReset ? (
           <div className="setup-card">

@@ -39,8 +39,11 @@ for (const r of RECIPES) {
 }
 
 console.log('recipes', RECIPES.length, counts);
+// Minimums from the original brief; new recipes may raise any cuisine.
 const want = { Chinese: 15, Japanese: 12, Korean: 10, Thai: 10, Western: 13 };
-for (const [k, v] of Object.entries(want)) if (counts[k] !== v) errors.push(`cuisine ${k}: ${counts[k]} != ${v}`);
+for (const [k, v] of Object.entries(want)) if ((counts[k] ?? 0) < v) errors.push(`cuisine ${k}: ${counts[k]} < ${v}`);
+const families = new Map<string, string>();
+for (const r of RECIPES) { const f = families.get(r.family); if (f && f !== r.id && !['krapow', 'rolled-omelette'].includes(r.family)) errors.push(`family ${r.family} shared by ${f} and ${r.id}`); families.set(r.family, r.id); }
 
 // Engine smoke tests
 const now = new Date().toISOString();

@@ -27,7 +27,6 @@ export function defaultData(): AppData {
     saved: [],
     history: [],
     palette: 'auto',
-    dishStyle: 'game',
   };
 }
 
@@ -57,7 +56,6 @@ function migrate(raw: unknown): AppData | null {
     saved: Array.isArray(d.saved) ? d.saved : [],
     history: Array.isArray(d.history) ? d.history : [],
     palette: ['auto', 'diner', 'night'].includes(d.palette as string) ? d.palette : 'auto',
-    dishStyle: d.dishStyle === 'photo' ? 'photo' : 'game',
   } as AppData;
 }
 

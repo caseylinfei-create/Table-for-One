@@ -3,6 +3,10 @@ import type { AppData, Pet } from '../domain/types';
 import { INGREDIENT_BY_ID } from '../data/ingredients';
 import { CHEF_BY_ID } from '../data/chefs';
 import { PetArt } from './Pets';
+import { IngredientIcon } from './IngredientIcon';
+import { SeasoningArt } from './SeasoningArt';
+import { SEASONINGS } from '../data/seasonings';
+import { formatQty } from '../domain/quantity';
 import { SCENES, SceneCtx, useScene } from './themes';
 import { useApp } from '../state/store';
 
@@ -83,7 +87,7 @@ export function KitchenScene({ data, mode, bubble, onFridge, onSeasoning, onChef
     >
       <Layer depth={2}><BackWall /></Layer>
       <Layer depth={5}>
-        <Counter />
+        <Counter data={data} />
         <Fridge data={data} open />
       </Layer>
 
@@ -126,7 +130,7 @@ export function KitchenScene({ data, mode, bubble, onFridge, onSeasoning, onChef
           className="hit hit--rack"
           aria-label="Open the seasoning rack"
           onClick={onSeasoning}
-          style={rect(8, 236, 66, 58)}
+          style={rect(0, 168, 84, 118)}
         />
       )}
       {profile.pet !== 'none' && (
@@ -304,8 +308,9 @@ function BackWall() {
 
 /* --------------------------------- counter -------------------------------- */
 
-function Counter() {
+function Counter({ data }: { data: AppData }) {
   const P = useScene();
+  const owned = SEASONINGS.filter((x) => data.seasonings[x.id]);
   return (
     <g>
       <defs>
@@ -329,21 +334,29 @@ function Counter() {
       <rect x="-40" y="284" width="240" height="16" rx="5" fill="url(#oak)" />
       <rect x="-40" y="296" width="240" height="4" fill={P.oakEdge} />
 
-      {/* mini seasoning rack (tap target overlays this) */}
+      {/* seasoning cabinet, door swung open; shows what is actually on the shelf */}
       <g>
-        <rect x="10" y="244" width="62" height="5" rx="2" fill={P.woodDark} />
-        <rect x="10" y="279" width="62" height="5" rx="2" fill={P.woodDark} />
-        <rect x="10" y="244" width="4" height="40" fill={P.woodDark} />
-        <rect x="68" y="244" width="4" height="40" fill={P.woodDark} />
-        {/* bottles */}
-        <rect x="18" y="254" width="10" height="25" rx="3" fill="#4A2C22" />
-        <rect x="20" y="249" width="6" height="6" rx="1" fill="#D96B58" />
-        <rect x="31" y="258" width="10" height="21" rx="3" fill="#E8C25A" />
-        <rect x="33" y="253" width="6" height="6" rx="1" fill="#7A6A3A" />
-        <rect x="44" y="262" width="10" height="17" rx="4" fill="#C8452F" />
-        <rect x="45" y="258" width="8" height="5" rx="2" fill="#F5D98B" />
-        <rect x="57" y="262" width="9" height="17" rx="4" fill="#F4F1EA" />
-        <rect x="58" y="258" width="7" height="5" rx="2" fill="#9AA3A8" />
+        <rect x="6" y="172" width="76" height="112" rx="6" fill={P.woodDark} />
+        <rect x="11" y="177" width="66" height="102" rx="4" fill={P.night ? '#3B3345' : '#F6EBD3'} />
+        <rect x="11" y="228" width="66" height="4" fill={P.woodDark} />
+        {owned.slice(0, 8).map((x, k) => (
+          <g key={x.id} transform={`translate(${12 + (k % 4) * 16} ${k < 4 ? 202 : 254}) scale(0.36)`}>
+            <SeasoningArt s={x} />
+          </g>
+        ))}
+        {owned.length === 0 && (
+          <text x="44" y="232" textAnchor="middle" fontSize="8" fontStyle="italic" fill={P.night ? '#9C90AE' : '#B79A6E'}>empty</text>
+        )}
+        {owned.length > 8 && (
+          <g>
+            <rect x="56" y="180" width="20" height="10" rx="5" fill={P.accentWarm} />
+            <text x="66" y="188" textAnchor="middle" fontSize="7" fontWeight="800" fill="#fff">+{owned.length - 8}</text>
+          </g>
+        )}
+        {/* open door on the left hinge */}
+        <path d="M6 174 L-14 166 L-14 290 L6 282 Z" fill={P.cabDoor} />
+        <path d="M2 180 L-10 175 L-10 281 L2 276 Z" fill="none" stroke={P.cabStroke} strokeWidth="1.5" />
+        <circle cx="-6" cy="228" r="2.2" fill={P.knob} />
       </g>
 
       {/* mug with steam */}
@@ -359,25 +372,18 @@ function Counter() {
 
 /* ---------------------------------- fridge --------------------------------- */
 
-function has(data: AppData, ids: string[]) {
-  return data.inventory.find((i) => ids.includes(i.ingredientId) && i.quantity > 0);
-}
-function hasCat(data: AppData, cats: string[]) {
-  return data.inventory.filter((i) => i.quantity > 0 && cats.includes(INGREDIENT_BY_ID[i.ingredientId]?.category));
-}
-
 function Fridge({ data }: { data: AppData; open?: boolean }) {
   const P = useScene();
-  const eggs = has(data, ['egg']);
-  const tomato = has(data, ['tomato']);
-  const milk = has(data, ['milk', 'soy-milk', 'heavy-cream']);
-  const kimchi = has(data, ['kimchi']);
-  const tofu = has(data, ['firm-tofu', 'silken-tofu']);
-  const rice = has(data, ['cooked-rice']);
-  const protein = hasCat(data, ['meat', 'seafood'])[0];
-  const produce = hasCat(data, ['vegetables', 'fruits']).filter((i) => i.ingredientId !== 'tomato').slice(0, 5);
-  const cheese = has(data, ['cheese-slice', 'parmesan', 'mozzarella']);
-  const lemon = has(data, ['lemon', 'lime']);
+  const stock = data.inventory
+    .filter((i) => i.quantity > 0 && INGREDIENT_BY_ID[i.ingredientId])
+    .sort((x, y) => y.updatedAt.localeCompare(x.updatedAt));
+  const isProduce = (i: { ingredientId: string }) => ['vegetables', 'fruits'].includes(INGREDIENT_BY_ID[i.ingredientId].category);
+  const crisper = stock.filter(isProduce).slice(0, 5);
+  const shelfAll = stock.filter((i) => !crisper.includes(i));
+  const shelved = shelfAll.slice(0, 12);
+  const extra = shelfAll.length - shelved.length;
+  const now = Date.now();
+  const fresh = (i: { updatedAt: string }) => now - Date.parse(i.updatedAt) < 90_000;
   const empty = data.inventory.every((i) => i.quantity <= 0);
 
   return (
@@ -441,69 +447,39 @@ function Fridge({ data }: { data: AppData; open?: boolean }) {
         </g>
       ))}
 
-      {/* top shelf: milk, jar, cheese */}
-      {milk && (
-        <g>
-          <rect x="220" y="140" width="24" height="40" rx="5" fill="#F7F4EC" stroke="#E3DACB" />
-          <path d="M220 144 l12 -10 l12 10 z" fill="#E8E1D2" />
-          <rect x="220" y="156" width="24" height="12" fill={P.sage} />
+      {/* Real contents: produce in the crisper, everything else on the shelves, newest first. */}
+      {crisper.map((p, i) => (
+        <g key={p.ingredientId} transform={`translate(${216 + i * 22} 306)`} className={fresh(p) ? 'fr-new' : undefined}>
+          <IngredientIcon ing={INGREDIENT_BY_ID[p.ingredientId]} size={26} />
         </g>
-      )}
-      {kimchi && (
-        <g>
-          <rect x="250" y="152" width="24" height="28" rx="6" fill="#D2533E" opacity="0.9" />
-          <rect x="248" y="146" width="28" height="8" rx="3" fill={P.woodDark} />
-        </g>
-      )}
-      {cheese && (
-        <path d="M282 180 l34 0 l0 -14 l-34 -6 z" fill="#F0C34E" stroke="#DDAE3A" strokeWidth="1" />
-      )}
-      {lemon && <ellipse cx="318" cy="170" rx="9" ry="8" fill="#EBC944" />}
-
-      {/* middle shelf: eggs, tomatoes */}
-      {eggs && (
-        <g>
-          <rect x="216" y="232" width="58" height="14" rx="4" fill="#E9D7B5" />
-          {Array.from({ length: Math.min(6, Math.ceil(eggs.quantity)) }, (_, i) => (
-            <ellipse key={i} cx={223 + i * 9} cy="231" rx="4.4" ry="5.6" fill="#F7EBD2" stroke="#E5D3B1" strokeWidth="0.8" />
-          ))}
-        </g>
-      )}
-      {tomato && (
-        <g>
-          {Array.from({ length: Math.min(3, Math.ceil(tomato.quantity)) }, (_, i) => (
-            <g key={i}>
-              <circle cx={290 + i * 15 - (i === 2 ? 22 : 0)} cy={i === 2 ? 224 : 237} r="8.5" fill="#D9604A" />
-              <path d={`M${287 + i * 15 - (i === 2 ? 22 : 0)} ${i === 2 ? 216 : 229} h6`} stroke="#5E8C4A" strokeWidth="2.4" strokeLinecap="round" />
-            </g>
-          ))}
-        </g>
-      )}
-
-      {/* lower shelf: protein, tofu, leftovers */}
-      {protein && (
-        <g>
-          <rect x="216" y="294" width="44" height="16" rx="5" fill="#F3EEE4" stroke="#E2D8C6" />
-          <ellipse cx="238" cy="300" rx="16" ry="5" fill={INGREDIENT_BY_ID[protein.ingredientId].color} />
-        </g>
-      )}
-      {tofu && <rect x="266" y="292" width="26" height="18" rx="4" fill="#F7F0DF" stroke="#E5DAC2" />}
-      {rice && (
-        <g>
-          <path d="M298 296 h30 a15 14 0 0 1 -30 0 z" fill={P.sage} />
-          <ellipse cx="313" cy="296" rx="15" ry="4" fill="#F6F2E8" />
-        </g>
-      )}
-
-      {/* crisper drawer */}
+      ))}
       <g>
-        {produce.map((p, i) => (
-          <circle key={p.ingredientId} cx={226 + i * 22} cy="328" r="10" fill={INGREDIENT_BY_ID[p.ingredientId].color} />
-        ))}
         <rect x="213" y="326" width="116" height="40" rx="10" fill="#F1E3C4" opacity="0.92" />
         <rect x="213" y="326" width="116" height="40" rx="10" fill="none" stroke="#E2CDA0" strokeWidth="2" />
         <rect x="250" y="334" width="42" height="6" rx="3" fill="#E2CDA0" />
       </g>
+      {shelved.map((p, i) => {
+        const row = Math.floor(i / 4), col = i % 4;
+        const x = 210 + col * 30, y = [180, 246, 310][row] - 33;
+        const ing = INGREDIENT_BY_ID[p.ingredientId];
+        return (
+          <g key={p.ingredientId} transform={`translate(${x} ${y})`} className={fresh(p) ? 'fr-new' : undefined}>
+            <IngredientIcon ing={ing} size={33} />
+            {p.quantity > 1 && (
+              <g>
+                <circle cx="26" cy="7" r="6" fill="#38342F" />
+                <text x="26" y="9.6" textAnchor="middle" fontSize="7" fontWeight="800" fill="#FFF6E2">{formatQty(Math.min(p.quantity, 99))}</text>
+              </g>
+            )}
+          </g>
+        );
+      })}
+      {extra > 0 && (
+        <g>
+          <rect x="300" y="312" width="26" height="12" rx="6" fill={P.accentWarm} />
+          <text x="313" y="321" textAnchor="middle" fontSize="8" fontWeight="800" fill="#fff">+{extra}</text>
+        </g>
+      )}
 
       {empty && (
         <text x="271" y="214" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="12" fill="#B79A6E" fontStyle="italic">

@@ -9,7 +9,6 @@ import { formatQty, formatUnit } from '../domain/quantity';
 import { formatSeasoningAmount, scaleText } from '../domain/scale';
 import { chefLine } from '../domain/dialogue';
 import { DishPhoto } from '../art/DishArt';
-import { Showcase } from '../components/Showcase';
 import { IngredientIcon } from '../art/IngredientIcon';
 import { Btn, Icon, Segmented, Sheet } from '../components/ui';
 import type { NewShoppingItem } from '../state/store';
@@ -50,6 +49,11 @@ export function RecipeDetail({ recipeId, onBack, toast, nav }: { recipeId: strin
   );
 
   const buyLines = e.lines.filter((l) => !l.req.optional && l.status !== 'have');
+  const groups = [
+    { key: 'have', label: 'On hand', lines: e.lines.filter((l) => l.status === 'have') },
+    { key: 'get', label: 'To get', lines: buyLines },
+    { key: 'opt', label: 'If you have it', lines: e.lines.filter((l) => l.req.optional && l.status !== 'have') },
+  ];
   const buyCount = buyLines.length + e.missingSeasonings.length;
 
   const addMissing = () => {
@@ -67,7 +71,7 @@ export function RecipeDetail({ recipeId, onBack, toast, nav }: { recipeId: strin
   return (
     <div className="detail">
       <div className="detail-hero">
-        {data.dishStyle === 'game' ? <Showcase recipe={recipe} lines={e.lines} className="detail-photo detail-show" /> : <DishPhoto recipe={recipe} className="detail-photo" />}
+        <DishPhoto recipe={recipe} className="detail-photo" />
         <button type="button" className="back-btn back-btn--icon" onClick={onBack} aria-label="Back">
           <Icon name="back" size={22} />
         </button>
@@ -109,47 +113,63 @@ export function RecipeDetail({ recipeId, onBack, toast, nav }: { recipeId: strin
 
         <section className="detail-sec" aria-labelledby="ing-h">
           <div className="section-head">
-            <h2 id="ing-h" className="section-h">Ingredients</h2>
+            <h2 id="ing-h" className="section-h">What goes in</h2>
             <span className="text-[13px] text-muted">for {servings}</span>
           </div>
-          <ul className="need-list">
-            {e.lines.map((l) => {
-              const ing = INGREDIENT_BY_ID[l.req.ingredientId];
-              const using = l.usingId !== l.req.ingredientId && l.have > 0 ? INGREDIENT_BY_ID[l.usingId] : null;
-              const alts = (l.req.alt ?? []).map((a) => INGREDIENT_BY_ID[a]?.name).filter(Boolean);
-              return (
-                <li key={l.req.ingredientId} className={`need need--${l.status}`}>
-                  <IngredientIcon ing={ing} size={32} />
-                  <div className="min-w-0 flex-1">
-                    <p className="need-name">
-                      {ing.name}
-                      {l.req.optional && <span className="opt">optional</span>}
-                    </p>
-                    <p className="need-sub">
-                      {formatQty(l.need)} {formatUnit(ing.unit, l.need)}
-                      {using ? ` · using ${using.name}` : alts.length ? ` · or ${alts.join(', ')}` : ''}
-                    </p>
-                  </div>
-                  <StatusPill l={l} />
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-
-        <section className="detail-sec" aria-labelledby="sea-h">
-          <h2 id="sea-h" className="section-h">Seasonings</h2>
-          <ul className="sea-list">
-            {e.seasonings.map(({ req, have }) => (
-              <li key={req.seasoningId} className={`sea ${have ? 'sea--have' : req.optional ? 'sea--opt' : 'sea--need'}`}>
-                <span className="sea-mark" aria-hidden="true">{have ? <Icon name="check" size={13} /> : null}</span>
-                <span className="sea-name">{SEASON[req.seasoningId]?.name}</span>
-                <span className="sea-amt">{formatSeasoningAmount(req.amount, req.unit, servings)}</span>
-                <span className="sr-only">{have ? 'you have it' : req.optional ? 'optional, not on your shelf' : 'missing'}</span>
-                {!have && <span className="sea-tag">{req.optional ? 'optional' : 'need'}</span>}
-              </li>
+          <div className="ticket">
+            {groups.map((g) => g.lines.length > 0 && (
+              <div key={g.key} className={`tk-group tk-group--${g.key}`}>
+                <p className="tk-label">
+                  <span>{g.label}</span>
+                  {g.key === 'get' && <span className="tk-stamp">{g.lines.length} to buy</span>}
+                </p>
+                <ul className="tk-list">
+                  {g.lines.map((l) => {
+                    const ing = INGREDIENT_BY_ID[l.req.ingredientId];
+                    const using = l.usingId !== l.req.ingredientId && l.have > 0 ? INGREDIENT_BY_ID[l.usingId] : null;
+                    const alts = (l.req.alt ?? []).map((a) => INGREDIENT_BY_ID[a]?.name).filter(Boolean);
+                    const sub = using ? `using ${using.name}` : alts.length ? `or ${alts.join(', ')}` : '';
+                    return (
+                      <li key={l.req.ingredientId} className="tk-row">
+                        <IngredientIcon ing={ing} size={26} />
+                        <span className="tk-name">
+                          {ing.name}
+                          {sub && <small>{sub}</small>}
+                        </span>
+                        <span className="tk-lead" aria-hidden="true" />
+                        <span className="tk-qty">
+                          {formatQty(l.need)} {formatUnit(ing.unit, l.need)}
+                          {l.status === 'short' && <small>have {formatQty(Math.round(l.have * 100) / 100)}</small>}
+                        </span>
+                        <span className="sr-only">{statusText(l)}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             ))}
-          </ul>
+
+            <div className="tk-group tk-group--sea">
+              <p className="tk-label"><span>Seasonings</span></p>
+              <ul className="tk-list">
+                {e.seasonings.map(({ req, have }) => {
+                  const state = have ? 'have' : req.optional ? 'opt' : 'need';
+                  return (
+                    <li key={req.seasoningId} className={`tk-row tk-row--sea is-${state}`}>
+                      <span className="tk-mark" aria-hidden="true">{have ? <Icon name="check" size={12} /> : null}</span>
+                      <span className="tk-name">{SEASON[req.seasoningId]?.name}</span>
+                      <span className="tk-lead" aria-hidden="true" />
+                      <span className="tk-qty">
+                        {formatSeasoningAmount(req.amount, req.unit, servings)}
+                        {state !== 'have' && <small>{state === 'need' ? 'need' : 'optional'}</small>}
+                      </span>
+                      <span className="sr-only">{have ? 'you have it' : req.optional ? 'optional, not on your shelf' : 'missing'}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
         </section>
 
         <section className="detail-sec" aria-labelledby="steps-h">
@@ -206,10 +226,8 @@ export function RecipeDetail({ recipeId, onBack, toast, nav }: { recipeId: strin
   );
 }
 
-function StatusPill({ l }: { l: IngredientLine }) {
-  if (l.status === 'have') return <span className="pill pill--have"><Icon name="check" size={13} /> Have</span>;
-  if (l.status === 'short') {
-    return <span className="pill pill--short">Short · have {formatQty(Math.round(l.have * 100) / 100)}</span>;
-  }
-  return <span className={`pill ${l.req.optional ? 'pill--opt' : 'pill--miss'}`}>{l.req.optional ? 'Skip ok' : 'Missing'}</span>;
+function statusText(l: IngredientLine) {
+  if (l.status === 'have') return 'you have it';
+  if (l.status === 'short') return 'not enough';
+  return l.req.optional ? 'optional, not in your fridge' : 'missing';
 }

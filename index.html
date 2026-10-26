@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-palette="diner">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#FBF3E4" />
+    <title>Table for One</title>
+    <script>
+      // Pick the look before first paint so there is no flash of the wrong colors.
+      (function () {
+        var setting = 'auto';
+        try { setting = (JSON.parse(localStorage.getItem('tfo:v1:data') || '{}').palette) || 'auto'; } catch (e) {}
+        var h = new Date().getHours();
+        var look = setting === 'diner' || setting === 'night' ? setting : (h >= 18 || h < 6 ? 'night' : 'diner');
+        document.documentElement.setAttribute('data-palette', look);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

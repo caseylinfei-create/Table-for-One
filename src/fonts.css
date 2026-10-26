@@ -1,0 +1,7 @@
+/* Self-hosted fonts (latin only), so the app needs no font CDN. */
+@font-face { font-family: 'Nunito TFO'; font-style: normal; font-display: swap; font-weight: 200 1000;
+  src: url('../node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2') format('woff2-variations'); }
+@font-face { font-family: 'Lilita TFO'; font-style: normal; font-display: swap; font-weight: 400;
+  src: url('../node_modules/@fontsource/lilita-one/files/lilita-one-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Baloo TFO'; font-style: normal; font-display: swap; font-weight: 400 800;
+  src: url('../node_modules/@fontsource-variable/baloo-2/files/baloo-2-latin-wght-normal.woff2') format('woff2-variations'); }

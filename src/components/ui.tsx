@@ -84,7 +84,7 @@ export function Toast({ text, action }: { text: string | null; action?: ToastAct
 }
 
 type IconName = 'kitchen' | 'book' | 'basket' | 'person' | 'back' | 'close' | 'search' | 'plus' | 'minus' | 'check' | 'trash' | 'spark' | 'chev-l' | 'chev-r'
-  | 'bookmark' | 'bookmark-on' | 'flame' | 'thermo' | 'clock' | 'play' | 'pause' | 'reset' | 'list' | 'pan';
+  | 'bookmark' | 'bookmark-on' | 'flame' | 'thermo' | 'clock' | 'play' | 'pause' | 'reset' | 'list' | 'pan' | 'dice' | 'swap';
 
 export function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
   const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
@@ -113,6 +113,8 @@ export function Icon({ name, size = 22 }: { name: IconName; size?: number }) {
     reset: <><path d="M5 12a7 7 0 1 0 2.1-5" {...p} /><path d="M5 4.5V9h4.5" {...p} /></>,
     list: <><path d="M9 7h10M9 12h10M9 17h10" {...p} /><circle cx="5" cy="7" r="1" fill="currentColor" /><circle cx="5" cy="12" r="1" fill="currentColor" /><circle cx="5" cy="17" r="1" fill="currentColor" /></>,
     pan: <><circle cx="10" cy="13" r="6.5" {...p} /><path d="M16 11.5l5-2" {...p} /></>,
+    dice: <><rect x="4.5" y="4.5" width="15" height="15" rx="3.5" {...p} /><circle cx="9" cy="9" r="1.2" fill="currentColor" /><circle cx="15" cy="15" r="1.2" fill="currentColor" /><circle cx="15" cy="9" r="1.2" fill="currentColor" /><circle cx="9" cy="15" r="1.2" fill="currentColor" /></>,
+    swap: <><path d="M7 8h11l-3-3M17 16H6l3 3" {...p} /></>,
   };
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">

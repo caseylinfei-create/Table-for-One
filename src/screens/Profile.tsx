@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { chefName, useApp } from '../state/store';
-import { CHEF_BY_ID } from '../data/chefs';
-import { ChefPicker } from '../components/ChefPicker';
+import { ACTIONS } from '../avatar/avatar';
+import { Chef3D } from '../avatar/Chef3D';
+import { ChefStudio } from '../components/ChefStudio';
 import { PetPicker } from '../components/PetPicker';
 import { Btn, Segmented, Sheet } from '../components/ui';
 import type { Servings } from '../domain/types';
@@ -10,7 +11,6 @@ import { LOOK_OPTIONS } from '../art/themes';
 export function Profile({ toast }: { toast: (t: string) => void }) {
   const { data, dispatch, look } = useApp();
   const p = data.profile!;
-  const chef = CHEF_BY_ID[p.chefId];
   const [picking, setPicking] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
@@ -20,11 +20,11 @@ export function Profile({ toast }: { toast: (t: string) => void }) {
       <h1 className="font-display text-[30px] font-semibold leading-tight">{chefName(p.surname)}</h1>
 
       <section className="setup-card mt-4 flex items-center gap-4">
-        <img src={chef.img} alt="" className="h-28 w-auto drop-shadow-md" />
+        <Chef3D avatar={p.avatar} className="profile-chef" mood={look === 'night' ? 'night' : 'day'} />
         <div className="min-w-0 flex-1">
           <p className="text-[13px] text-muted">Your chef</p>
-          <p className="font-display text-[20px] font-semibold">{chef.title}</p>
-          <Btn variant="soft" className="btn--sm mt-2" onClick={() => setPicking(true)}>Change chef</Btn>
+          <p className="font-display text-[20px] font-semibold">{ACTIONS.find((a) => a.id === p.avatar.action)?.label} chef</p>
+          <Btn variant="soft" className="btn--sm mt-2" onClick={() => setPicking(true)}>Customize</Btn>
         </div>
       </section>
 
@@ -93,8 +93,8 @@ export function Profile({ toast }: { toast: (t: string) => void }) {
         <p className="mt-3 text-center text-[12px] text-muted">Saved on this device only. Accounts and sync come later.</p>
       </section>
 
-      <Sheet open={picking} onClose={() => setPicking(false)} title="Choose your chef" footer={<Btn className="w-full" onClick={() => { setPicking(false); toast('Chef updated'); }}>Done</Btn>}>
-        <ChefPicker value={p.chefId} onChange={(id) => dispatch({ type: 'updateProfile', patch: { chefId: id } })} />
+      <Sheet open={picking} onClose={() => setPicking(false)} title="Your chef" footer={<Btn className="w-full" onClick={() => { setPicking(false); toast('Chef updated'); }}>Done</Btn>}>
+        <ChefStudio value={p.avatar} onChange={(avatar) => dispatch({ type: 'updateProfile', patch: { avatar } })} />
       </Sheet>
     </div>
   );

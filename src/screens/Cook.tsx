@@ -3,6 +3,7 @@ import { chefName, useApp } from '../state/store';
 import { RECIPE_BY_ID } from '../data/recipes';
 import { INGREDIENT_BY_ID } from '../data/ingredients';
 import { SEASONINGS } from '../data/seasonings';
+import { Chef3D, usePortrait } from '../avatar/Chef3D';
 import { CHEF_BY_ID } from '../data/chefs';
 import { cookLine, estimateUsage, formatClock, isFinished, isRunning, remainingMs, weekday } from '../domain/cook';
 import { formatQty, formatUnit, stepDown, stepUp } from '../domain/quantity';
@@ -87,10 +88,11 @@ function useWakeLock() {
 
 function Steps({ c, recipe, nav }: { c: CookSession; recipe: Recipe; nav: Nav }) {
   const { data, dispatch } = useApp();
-  const chef = CHEF_BY_ID[data.profile!.chefId];
   const step = recipe.steps[c.step];
   const total = recipe.steps.length;
   const last = c.step === total - 1;
+  const stirImg = usePortrait(data.profile!.avatar, 'stir');
+  const cheerImg = usePortrait(data.profile!.avatar, 'cheer');
   const [now, setNow] = useState(() => Date.now());
   const [listOpen, setListOpen] = useState(false);
   const alarmed = useRef<Set<number>>(new Set());
@@ -127,7 +129,7 @@ function Steps({ c, recipe, nav }: { c: CookSession; recipe: Recipe; nav: Nav })
   const others = Object.entries(c.timers)
     .map(([k, t]) => ({ k: Number(k), t }))
     .filter(({ k, t }) => k !== c.step && (isRunning(t, now) || (t.endsAt != null && t.endsAt <= now)));
-  const line = cookLine(step, c.step, total, timerDone, chef.lines);
+  const line = cookLine(step, c.step, total, timerDone, CHEF_BY_ID[data.profile!.chefId].lines);
   const go = (n: number) => { dispatch({ type: 'cookStep', step: n }); window.scrollTo({ top: 0 }); };
 
   return (
@@ -209,7 +211,7 @@ function Steps({ c, recipe, nav }: { c: CookSession; recipe: Recipe; nav: Nav })
         {step.note && <p className="cook-note">{step.note}</p>}
 
         <div className="cook-chef">
-          <img key={`${c.step}:${timerDone}`} src={chef.img} alt="" className={timerDone ? 'is-cheer' : 'is-react'} />
+          <img key={`${c.step}:${timerDone}`} src={timerDone ? cheerImg : stirImg} alt="" className={timerDone ? 'is-cheer' : 'is-react'} />
           <p className="cook-bubble" key={line}>{line}</p>
         </div>
       </div>
@@ -307,7 +309,7 @@ function TimerCard({ timer, now, durationMs, onStart, onPause, onReset }: {
 
 function Confirm({ c, recipe }: { c: CookSession; recipe: Recipe }) {
   const { data, dispatch } = useApp();
-  const chef = CHEF_BY_ID[data.profile!.chefId];
+  const chefImg = usePortrait(data.profile!.avatar, 'think');
   const { rows, notInFridge } = useMemo(
     () => estimateUsage(recipe, data.inventory, data.seasonings, c.servings),
     // Estimate once, from the fridge as it was when cooking finished.
@@ -320,7 +322,7 @@ function Confirm({ c, recipe }: { c: CookSession; recipe: Recipe }) {
   return (
     <div className="confirm">
       <header className="confirm-head">
-        <img src={chef.img} alt="" className="confirm-chef" />
+        <img src={chefImg} alt="" className="confirm-chef" />
         <div className="min-w-0">
           <p className="eyebrow">{recipe.name}</p>
           <h1 className="font-display text-[30px] font-semibold leading-[1.05]">Almost done, {chefName(data.profile!.surname)}!</h1>
@@ -384,7 +386,6 @@ function Confirm({ c, recipe }: { c: CookSession; recipe: Recipe }) {
 function Enjoy({ c, recipe, nav, toast }: { c: CookSession; recipe: Recipe; nav: Nav; toast: (t: string) => void }) {
   const { data, dispatch } = useApp();
   const p = data.profile!;
-  const chef = CHEF_BY_ID[p.chefId];
   const saved = data.saved.includes(recipe.id);
   const [quip] = useState(() => {
     const day = weekday(new Date(c.deductedAt ?? Date.now()));
@@ -398,7 +399,7 @@ function Enjoy({ c, recipe, nav, toast }: { c: CookSession; recipe: Recipe; nav:
       <div className="enjoy-stage">
         <div className="enjoy-glow" aria-hidden="true" />
         <DishPhoto recipe={recipe} className="enjoy-dish" label={false} />
-        <img src={chef.img} alt="" className="enjoy-chef is-cheer" />
+        <Chef3D avatar={p.avatar} action="cheer" className="enjoy-chef" />
         {p.pet !== 'none' && (
           <svg className={`enjoy-pet enjoy-pet--${p.pet}`} viewBox={p.pet === 'cat' ? '-4 -2 52 90' : '-2 18 104 52'} aria-hidden="true">
             <PetArt kind={p.pet} asleep={false} />

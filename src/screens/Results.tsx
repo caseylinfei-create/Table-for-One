@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { chefName, useApp } from '../state/store';
 import { RECIPES } from '../data/recipes';
 import { INGREDIENT_BY_ID } from '../data/ingredients';
-import { CHEF_BY_ID } from '../data/chefs';
+import { usePortrait } from '../avatar/Chef3D';
 import { recommend, type Evaluation } from '../domain/recommend';
 import { chefLine } from '../domain/dialogue';
 import { RecipeCard } from '../components/RecipeCard';
@@ -13,7 +13,7 @@ import type { Nav } from '../App';
 export function Results({ nav, picked, surprise, onBack }: { nav: Nav; picked: string[]; surprise?: boolean; onBack: () => void }) {
   const { data } = useApp();
   const name = chefName(data.profile!.surname);
-  const chef = CHEF_BY_ID[data.profile!.chefId];
+  const chefImg = usePortrait(data.profile!.avatar, 'think');
   const usePicked = surprise ? [] : picked;
 
   const sections = useMemo(
@@ -55,7 +55,7 @@ export function Results({ nav, picked, surprise, onBack }: { nav: Nav; picked: s
             )}
             <p className="results-quip">“{line}”</p>
           </div>
-          <img src={chef.img} alt="" className="results-chef" />
+          <img src={chefImg} alt="" className="results-chef" />
         </div>
         <RecipeFilters idPrefix="results" />
         <p className="text-[13px] text-muted">

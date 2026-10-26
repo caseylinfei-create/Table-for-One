@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { AppData, Pet } from '../domain/types';
 import { INGREDIENT_BY_ID } from '../data/ingredients';
-import { CHEF_BY_ID } from '../data/chefs';
+import { Chef3D } from '../avatar/Chef3D';
 import { PetArt } from './Pets';
 import { IngredientIcon } from './IngredientIcon';
 import { SeasoningArt } from './SeasoningArt';
@@ -73,8 +73,7 @@ export function KitchenScene({ data, mode, bubble, onFridge, onSeasoning, onChef
   }, []);
 
   const profile = data.profile!;
-  const chef = CHEF_BY_ID[profile.chefId];
-  const chefH = 268; // in scene units
+  const chefH = 330; // in scene units
 
   return (
     <SceneCtx.Provider value={SCENES[look]}>
@@ -98,16 +97,14 @@ export function KitchenScene({ data, mode, bubble, onFridge, onSeasoning, onChef
           onClick={() => { setTapKey((k) => k + 1); onChef?.(); }}
           aria-label="Talk to your chef"
           style={{
-            left: `${(136 / SCENE_W) * 100}%`,
-            bottom: `${(24 / SCENE_H) * 100}%`,
+            left: `${(112 / SCENE_W) * 100}%`,
+            bottom: `${(10 / SCENE_H) * 100}%`,
             height: `${(chefH / SCENE_H) * 100}%`,
-            aspectRatio: String(chef.ratio),
+            aspectRatio: '0.62',
           }}
         >
-          <span key={`t${tapKey}`} className={`chef-anim ${tapKey ? 'is-tapped' : ''}`}>
-            <span key={`r${reactKey}`} className={`chef-anim ${reactKey ? 'is-react' : ''}`}>
-              <img src={chef.img} alt="" className="chef-img" draggable={false} decoding="async" />
-            </span>
+          <span className="chef-anim">
+            <Chef3D avatar={profile.avatar} mood={look === 'night' ? 'night' : 'day'} reactKey={tapKey + reactKey} action={mode === 'fridge' ? 'think' : undefined} className="chef-img" />
           </span>
         </button>
       </div>
@@ -243,12 +240,14 @@ function BackWall() {
         <path d="M74 44 V152 M27 108 H121" stroke={P.frame} strokeWidth="5" />
         <rect x="10" y="158" width="128" height="10" rx="4" fill={P.sill} />
         {/* plant on sill */}
+        <g transform="translate(-66 0)">
         <path d="M100 160 l3 -18 h20 l3 18 z" fill={P.accentWarm} />
         <rect x="100" y="140" width="26" height="5" rx="2" fill="#C47A5C" />
         <g className="sway-slow" style={{ transformOrigin: '113px 140px' }}>
           <path d="M113 140 C104 126 98 120 92 120 C98 128 104 134 113 140" fill="#7E9E62" />
           <path d="M113 140 C112 122 116 112 122 106 C122 118 118 130 113 140" fill="#8DAE6E" />
           <path d="M113 140 C122 130 130 128 136 130 C130 134 122 138 113 140" fill="#6F8F55" />
+        </g>
         </g>
       </g>
       {/* curtain valance */}

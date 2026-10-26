@@ -3,7 +3,7 @@ import { useApp } from '../state/store';
 import { RECIPE_BY_ID } from '../data/recipes';
 import { INGREDIENT_BY_ID } from '../data/ingredients';
 import { SEASONINGS } from '../data/seasonings';
-import { CHEF_BY_ID } from '../data/chefs';
+import { usePortrait } from '../avatar/Chef3D';
 import { evaluate, type IngredientLine } from '../domain/recommend';
 import { formatQty, formatUnit } from '../domain/quantity';
 import { formatSeasoningAmount, scaleText } from '../domain/scale';
@@ -41,7 +41,7 @@ export function RecipeDetail({ recipeId, onBack, toast, nav }: { recipeId: strin
     start();
   };
   const e = useMemo(() => evaluate(recipe, data.inventory, data.seasonings, servings), [recipe, data.inventory, data.seasonings, servings]);
-  const chef = CHEF_BY_ID[data.profile!.chefId];
+  const chefImg = usePortrait(data.profile!.avatar, e.everything ? 'cheer' : 'think', 'bust');
   const line = useMemo(
     () => chefLine({ kind: 'recipe', everything: e.everything, missingCount: e.missing.length + e.missingSeasonings.length, minutes: recipe.minutes }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,7 +96,7 @@ export function RecipeDetail({ recipeId, onBack, toast, nav }: { recipeId: strin
         <p className="mt-2 text-[15px] leading-relaxed text-muted">{recipe.blurb}</p>
 
         <div className="detail-chef">
-          <img src={chef.img} alt="" />
+          <img src={chefImg} alt="" />
           <p>“{line}”</p>
         </div>
 

@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { CHEFS } from '../data/chefs';
-import type { ChefId, Pet } from '../domain/types';
+import type { Pet } from '../domain/types';
+import { randomAvatar, voiceFor, type Avatar } from '../avatar/avatar';
 import { chefName, useApp } from '../state/store';
-import { ChefPicker } from '../components/ChefPicker';
+import { ChefStudio } from '../components/ChefStudio';
 import { PetPicker } from '../components/PetPicker';
 import { Btn } from '../components/ui';
 
 /** One screen, shown only on first launch: chef, name, pet. */
 export function Setup() {
   const { dispatch } = useApp();
-  const [chefId, setChefId] = useState<ChefId>(() => CHEFS[Math.floor(Math.random() * CHEFS.length)].id);
+  const [avatar, setAvatar] = useState<Avatar>(() => randomAvatar());
   const [surname, setSurname] = useState('');
   const [pet, setPet] = useState<Pet>('none');
   const ready = surname.trim().length > 0;
@@ -17,7 +17,7 @@ export function Setup() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!ready) return;
-    dispatch({ type: 'setProfile', profile: { chefId, surname: surname.trim(), pet } });
+    dispatch({ type: 'setProfile', profile: { chefId: voiceFor(avatar), avatar, surname: surname.trim(), pet } });
   };
 
   return (
@@ -29,8 +29,8 @@ export function Setup() {
       </header>
 
       <section aria-labelledby="pick-h" className="setup-card">
-        <h2 id="pick-h" className="setup-h">Who’s cooking with you?</h2>
-        <ChefPicker value={chefId} onChange={setChefId} />
+        <h2 id="pick-h" className="setup-h">Make your chef</h2>
+        <ChefStudio value={avatar} onChange={setAvatar} />
       </section>
 
       <section className="setup-card" aria-labelledby="name-h">

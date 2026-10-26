@@ -1,5 +1,6 @@
 import type { AppData, ChefId } from '../domain/types';
-import { CHEFS } from '../data/chefs';
+import { CHEFS, CHEF_BY_ID } from '../data/chefs';
+import { DEFAULT_AVATAR, isAvatar, voiceFor } from '../avatar/avatar';
 import { DEFAULT_OWNED, SEASONINGS } from '../data/seasonings';
 
 /**
@@ -43,6 +44,11 @@ function migrate(raw: unknown): AppData | null {
   if (profile && !CHEF_IDS.has(profile.chefId)) {
     // First prototype had four chefs; move those users to the closest new one.
     profile = { ...profile, chefId: LEGACY_CHEF[profile.chefId as string] ?? 'wok' };
+  }
+  if (profile && !isAvatar(profile.avatar)) {
+    // Before 3D chefs: start from the base that matches the chef they had picked.
+    const avatar = { ...DEFAULT_AVATAR[CHEF_BY_ID[profile.chefId]?.gender === 'male' ? 'masc' : 'fem'] };
+    profile = { ...profile, avatar, chefId: voiceFor(avatar) };
   }
   return {
     ...base,

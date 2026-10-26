@@ -57,12 +57,8 @@ export type ChefId =
 export type Pet = 'none' | 'cat' | 'dog';
 export type Servings = 1 | 2 | 3;
 
-import type { Avatar } from '../avatar/avatar';
-
 export type Profile = {
-  /** Personality used for the chef's lines. Derived from the avatar's signature move. */
   chefId: ChefId;
-  avatar: Avatar;
   surname: string;
   pet: Pet;
 };

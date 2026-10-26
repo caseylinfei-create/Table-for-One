@@ -1,5 +1,3 @@
-import type { Avatar } from '../avatar/avatar';
-import { voiceFor } from '../avatar/avatar';
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
 import type { AppData, Filters, Pet, Profile, Servings, ChefId, ShoppingItem } from '../domain/types';
 import { pauseTimer, resetTimer, startTimer } from '../domain/cook';
@@ -11,7 +9,7 @@ export type NewShoppingItem = Omit<ShoppingItem, 'id' | 'purchased' | 'addedQty'
 
 type Action =
   | { type: 'setProfile'; profile: Profile }
-  | { type: 'updateProfile'; patch: Partial<{ chefId: ChefId; surname: string; pet: Pet; avatar: Avatar }> }
+  | { type: 'updateProfile'; patch: Partial<{ chefId: ChefId; surname: string; pet: Pet }> }
   | { type: 'setQty'; id: string; qty: number }
   | { type: 'addItem'; id: string; qty?: number }
   | { type: 'removeItem'; id: string }
@@ -62,8 +60,7 @@ function reducer(state: AppData, a: Action): AppData {
     case 'setProfile':
       return { ...state, profile: a.profile };
     case 'updateProfile':
-      if (!state.profile) return state;
-      return { ...state, profile: { ...state.profile, ...a.patch, ...(a.patch.avatar ? { chefId: voiceFor(a.patch.avatar) } : {}) } };
+      return state.profile ? { ...state, profile: { ...state.profile, ...a.patch } } : state;
     case 'setQty':
       return {
         ...state,

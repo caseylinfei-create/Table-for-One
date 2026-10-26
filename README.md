@@ -120,7 +120,3 @@ assets-source/ full-resolution transparent PNG cutouts of the ten chefs (legacy-
 - Ingredient gram weights (`gramsPerUnit`) are household estimates for recipe matching, shown as "about".
 - The kitchen is drawn in code as layers sharing one 400 × 440 space. Any layer can be swapped for painted PNGs later.
 - Chef art: original images supplied by the owner.
-
-## 3D chefs
-
-`src/avatar/` holds the customizable chef: `avatar.ts` (options and defaults), `model.ts` (a procedural clay-style three.js model with a small joint rig and seven code-driven moves), and `Chef3D.tsx` (the live canvas plus cached still portraits for small spots, so only one WebGL canvas runs at a time). `ChefStudio` is the customizer used in Setup and Profile. A hand-modeled `.glb` can replace `buildChef` later as long as it keeps the same `{ root, update, dispose }` shape.

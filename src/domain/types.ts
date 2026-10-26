@@ -177,6 +177,8 @@ export type AppData = {
   saved: string[];
   /** Look of the app. 'auto' follows the phone clock: Diner by day, Night Kitchen in the evening. */
   palette: 'auto' | 'diner' | 'night';
+  /** How dishes are pictured: game-style illustrations or real photos. */
+  dishStyle: 'game' | 'photo';
   /** Simple cooking log, newest first. */
   history: { recipeId: string; at: string }[];
 };

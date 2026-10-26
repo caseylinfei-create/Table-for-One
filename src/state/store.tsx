@@ -34,6 +34,7 @@ type Action =
   | { type: 'endCook' }
   | { type: 'toggleSaved'; id: string }
   | { type: 'setPalette'; palette: AppData['palette'] }
+  | { type: 'setDishStyle'; dishStyle: AppData['dishStyle'] }
   | { type: 'reset' };
 
 const now = () => new Date().toISOString();
@@ -193,6 +194,8 @@ function reducer(state: AppData, a: Action): AppData {
       return { ...state, cook: null };
     case 'toggleSaved':
       return { ...state, saved: state.saved.includes(a.id) ? state.saved.filter((x) => x !== a.id) : [a.id, ...state.saved] };
+    case 'setDishStyle':
+      return { ...state, dishStyle: a.dishStyle };
     case 'setPalette':
       return { ...state, palette: a.palette };
     case 'reset':

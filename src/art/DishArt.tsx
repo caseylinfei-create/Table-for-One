@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
 import type { Recipe } from '../domain/types';
+import { useApp } from '../state/store';
+import { PHOTOS } from '../data/photos';
+import { Showcase } from '../components/Showcase';
 
 /**
  * Stand-in for recipe photography. Draws a top-down dish on linen from the
@@ -7,10 +10,15 @@ import type { Recipe } from '../domain/types';
  * When recipe.image is set, the real photo is shown instead.
  */
 export function DishPhoto({ recipe, className = '', label = true }: { recipe: Recipe; className?: string; label?: boolean }) {
-  if (recipe.image) {
+  const { data } = useApp();
+  if (data.dishStyle === 'game') {
+    return <Showcase recipe={recipe} banner={false} tray={false} className={`dish ${className}`} />;
+  }
+  const photo = recipe.image || PHOTOS[recipe.id]?.src;
+  if (photo) {
     return (
       <div className={`dish ${className}`}>
-        <img src={recipe.image} alt={recipe.name} className="dish-img" loading="lazy" />
+        <img src={photo} alt={recipe.name} className="dish-img" loading="lazy" decoding="async" />
       </div>
     );
   }

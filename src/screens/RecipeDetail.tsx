@@ -9,6 +9,7 @@ import { formatQty, formatUnit } from '../domain/quantity';
 import { formatSeasoningAmount, scaleText } from '../domain/scale';
 import { chefLine } from '../domain/dialogue';
 import { DishPhoto } from '../art/DishArt';
+import { Showcase } from '../components/Showcase';
 import { IngredientIcon } from '../art/IngredientIcon';
 import { Btn, Icon, Segmented, Sheet } from '../components/ui';
 import type { NewShoppingItem } from '../state/store';
@@ -66,7 +67,7 @@ export function RecipeDetail({ recipeId, onBack, toast, nav }: { recipeId: strin
   return (
     <div className="detail">
       <div className="detail-hero">
-        <DishPhoto recipe={recipe} className="detail-photo" />
+        {data.dishStyle === 'game' ? <Showcase recipe={recipe} lines={e.lines} className="detail-photo detail-show" /> : <DishPhoto recipe={recipe} className="detail-photo" />}
         <button type="button" className="back-btn back-btn--icon" onClick={onBack} aria-label="Back">
           <Icon name="back" size={22} />
         </button>

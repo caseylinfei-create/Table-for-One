@@ -1,4 +1,4 @@
-# Table for One · Phase 4
+# Table for One
 
 Cozy kitchen, working fridge inventory, seasoning rack. Mobile-first React + TypeScript.
 
